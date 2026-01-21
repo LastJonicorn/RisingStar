@@ -18,6 +18,7 @@ class Booking(BaseModel):
     date: date
     start_time: time
     end_time: time
+    attendees: int
     title: str
     booked_by: str
 
@@ -26,6 +27,7 @@ class BookingCreate(BaseModel):
     date: date
     start_time: time
     end_time: time
+    attendees: int
     title: str
     booked_by: str
 
@@ -74,6 +76,12 @@ def create_booking(data: BookingCreate):
     if start_dt < now:
         raise HTTPException(status_code=400, detail="Booking cannot start in the past")
 
+    if data.attendees > room.capacity:
+        raise HTTPException(status_code=400, detail="Number of attendees exceeds room capacity")
+
+    if data.attendees < 1:
+        raise HTTPException(status_code=400, detail="Number of attendees must be at least 1")
+
     for booking in bookings:
         if booking.room_id == data.room_id:
             existing_start = combine_datetime(booking.date, booking.start_time)
@@ -87,6 +95,7 @@ def create_booking(data: BookingCreate):
         date=data.date,
         start_time=data.start_time,
         end_time=data.end_time,
+        attendees=data.attendees,
         title=data.title,
         booked_by=data.booked_by,
     )
