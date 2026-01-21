@@ -17,12 +17,14 @@ class Booking(BaseModel):
     start_time: datetime
     end_time: datetime
     title: str
+    booked_by: str
 
 class BookingCreate(BaseModel):
     room_id: int
     start_time: datetime
     end_time: datetime
     title: str
+    booked_by: str
 
 # ---- In-memory storage (demo purposes only) ----
 rooms: List[Room] = [
@@ -109,6 +111,7 @@ def create_booking(data: BookingCreate):
         start_time=start_time,
         end_time=end_time,
         title=data.title,
+        booked_by=data.booked_by,
     )
 
     bookings.append(new_booking)
