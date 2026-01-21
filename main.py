@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from datetime import datetime, date, time, timezone
 from typing import List
+from itertools import count
 
 app = FastAPI(title="Meeting Room Booking API")
 
@@ -35,10 +36,10 @@ rooms: List[Room] = [
 ]
 
 bookings: List[Booking] = []
+booking_id_counter = count(1)
 
 # ---- Helper functions ----
 def combine_datetime(d: date, t: time) -> datetime:
-    """Combine date and time into a UTC datetime with zeroed seconds and microseconds."""
     return datetime(d.year, d.month, d.day, t.hour, t.minute, tzinfo=timezone.utc)
 
 # ---- API Endpoints ----
@@ -81,7 +82,7 @@ def create_booking(data: BookingCreate):
                 raise HTTPException(status_code=400, detail="The room is already booked for the given time range")
 
     new_booking = Booking(
-        id=len(bookings) + 1,
+        id=next(booking_id_counter),
         room_id=data.room_id,
         date=data.date,
         start_time=data.start_time,
