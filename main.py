@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime, date, time, timezone
+from datetime import datetime, date, time
 from typing import List
 from itertools import count
 
@@ -31,7 +31,7 @@ class BookingCreate(BaseModel):
     title: str
     booked_by: str
 
-# ---- In-memory storage (demo purposes only) ----
+# ---- In-memory storage ----
 rooms: List[Room] = [
     Room(id=1, name="Meeting Room A", capacity=8),
     Room(id=2, name="Meeting Room B", capacity=12),
@@ -42,7 +42,7 @@ booking_id_counter = count(1)
 
 # ---- Helper functions ----
 def combine_datetime(d: date, t: time) -> datetime:
-    return datetime(d.year, d.month, d.day, t.hour, t.minute, tzinfo=timezone.utc)
+    return datetime(d.year, d.month, d.day, t.hour, t.minute)
 
 # ---- API Endpoints ----
 @app.get("/rooms", response_model=List[Room])
@@ -72,7 +72,7 @@ def create_booking(data: BookingCreate):
     if end_dt <= start_dt:
         raise HTTPException(status_code=400, detail="End time must be after start time")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     if start_dt < now:
         raise HTTPException(status_code=400, detail="Booking cannot start in the past")
 
