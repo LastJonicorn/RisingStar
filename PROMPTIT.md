@@ -661,3 +661,83 @@ Swagger / JSON näyttää selkeät kentät ilman sekunteja ja mikrosekunteja.
 Seuraava looginen askel voisi olla kapasiteetin tarkistus (attendees) tai JSON-palautuksen viimeistely muodossa "HH:MM".
 
 Haluatko, että toteutetaan seuraavaksi kapasiteettirajoitus?
+
+# PROMPT 7:
+Olen yrittänyt saada rajapintaa käyttämään Suomen aikavyöhykettä käyttäen ZoneInfoa, mutta en saa sitä toimimaan testauksessa. 
+Onko sinulla vinkkejä miten saan testauksen toimimaan Suomen ajassa?
+
+# ChatGPT 7:
+Lyhyt vastaus
+
+Kyllä, minulla on vinkki: älä käytä aikavyöhykkeitä lainkaan tässä rajapinnassa. Se on helpoin, varmin ja ammatillisesti täysin hyväksyttävä ratkaisu tähän käyttötapaukseen.
+
+Miksi ZoneInfo tekee testauksesta vaikeaa?
+
+Kun käytät ZoneInfo("Europe/Helsinki"):
+
+Pythonin datetime-objekteista tulee timezone-aware
+
+Osa ajoista (esim. käyttäjän syöte) on usein timezone-naive
+
+Näiden vertaileminen on yllättävän helppo tehdä väärin
+
+Swagger / OpenAPI näyttää aikoja muodossa, joka ei vastaa käyttäjän paikallista aikaa
+
+Testauksessa syntyy helposti vaikutelma, että ajat “siirtyvät” tai ovat väärin
+
+Eli vaikka itse aikavyöhykelogiiikka olisi teoriassa oikein, testaus ja käyttöliittymä tekevät siitä epäluotettavan tuntuisen.
+
+Tärkeä havainto sinun rajapinnastasi
+
+Rajapintasi:
+
+Käyttää päivämäärää (date)
+
+Käyttää kellonaikaa (time)
+
+Ei palauta eikä tallenna absoluuttisia aikaleimoja (datetime eri aikavyöhykkeissä)
+
+On tarkoitettu Suomessa käytettäväksi
+
+👉 Tässä tilanteessa aikavyöhykkeet eivät tuo lisäarvoa – ne tuovat vain riskejä.
+
+Suositeltu tapa: paikallinen aika ilman aikavyöhykkeitä
+
+Sen sijaan, että yrittäisit “pakottaa” Suomen aikavyöhykkeen ZoneInfolla, tee näin:
+
+Käytä date ja time sellaisenaan
+
+Yhdistä ne tarvittaessa datetime-olioksi ilman tzinfoa
+
+Vertaa niitä datetime.now()-arvoon (myös ilman tzinfoa)
+
+Tällöin:
+
+Rajapinta käyttää aina koneen paikallista aikaa
+
+Testaus vastaa sitä, mitä käyttäjä näkee
+
+Ei tule UTC/Suomi-siirtymiä
+
+Swaggerin näyttämät ajat eivät vaikuta logiikkaan
+
+Tämä on yksinkertainen ja erittäin vakaa malli.
+
+Milloin ZoneInfo olisi oikeasti tarpeen?
+
+Aikavyöhykkeet kannattaa ottaa mukaan vasta, jos:
+
+Käyttäjiä on useissa maissa
+
+Tallennat tapahtumia eri aikavyöhykkeiltä
+
+Tarvitset absoluuttisia aikaleimoja (esim. audit-logit)
+
+Harjoitustehtävässä tai sisäisessä varausjärjestelmässä nämä eivät yleensä ole tarpeen.
+
+Yhteenveto
+
+Jos ZoneInfo ei toimi testauksessa ja tuntuu hankalalta, se ei ole merkki siitä, että teet jotain “väärin” – vaan siitä, että aikavyöhykkeet ovat tässä tarpeettoman raskas ratkaisu.
+
+👉 Paras vinkki testauksen saamiseksi toimimaan Suomen ajassa on:
+luopua aikavyöhykkeistä kokonaan ja käyttää paikallista aikaa sellaisenaan.

@@ -6,6 +6,8 @@ from itertools import count
 
 app = FastAPI(title="Meeting Room Booking API")
 
+FORBIDDEN_PATTERNS = ["<", ">", "/>", "</", "||", "|", "&&", ";", "--", "/*" , "*/", "{", "}", "../", "script"]
+
 # ---- Data Models ----
 class Room(BaseModel):
     id: int
@@ -44,6 +46,15 @@ booking_id_counter = count(1)
 def combine_datetime(d: date, t: time) -> datetime:
     return datetime(d.year, d.month, d.day, t.hour, t.minute)
 
+def validate_text_field(value:str, field_name:str):
+    if not value or not value.strip():
+        raise HTTPException(status_code=400, detail=f"{field_name} cannot be empty")
+
+    lower_value = value.lower()
+    for pattern in FORBIDDEN_PATTERNS:
+        if pattern in lower_value:
+            raise HTTPException(status_code=400, detail=f"{field_name} contains forbidden characters")
+
 # ---- API Endpoints ----
 @app.get("/rooms", response_model=List[Room])
 def list_rooms():
@@ -65,6 +76,9 @@ def create_booking(data: BookingCreate):
     room = next((r for r in rooms if r.id == data.room_id), None)
     if room is None:
         raise HTTPException(status_code=404, detail="Room not found")
+
+    validate_text_field(data.title, "title")
+    validate_text_field(data.booked_by, "booked_by")
 
     start_dt = combine_datetime(data.date, data.start_time)
     end_dt = combine_datetime(data.date, data.end_time)
